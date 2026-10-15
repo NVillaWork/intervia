@@ -1,0 +1,293 @@
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 24px;
+}
+.metric-card {
+  min-width: 0;
+  padding: 21px;
+  border: 1px solid var(--color-border);
+  border-radius: 11px;
+  background: var(--color-surface);
+  box-shadow: 0 2px 4px rgb(23 43 58 / 3%);
+}
+.metric-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.metric-label {
+  color: var(--color-text-muted);
+  font-size: calc(11px * var(--font-scale));
+  font-weight: 600;
+}
+.metric-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 9px;
+  font-size: calc(19px * var(--font-scale));
+  font-weight: 650;
+}
+/* Gli indicatori usano la palette Intervia, non colori indipendenti. */
+.metric-icon.blue,
+.metric-icon.violet {
+  background: #E7EDF1;
+  color: var(--color-primary);
+}
+.metric-icon.orange {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+.metric-icon.red {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+.metric-value {
+  display: block;
+  margin-top: 20px;
+  color: var(--color-primary);
+  font-size: calc(30px * var(--font-scale));
+  font-weight: 750;
+  letter-spacing: -1px;
+}
+.metric-caption {
+  display: block;
+  margin-top: 8px;
+  color: var(--color-text-muted);
+  font-size: calc(10px * var(--font-scale));
+}
+.content-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(260px, 1fr);
+  gap: 20px;
+}
+.panel {
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 11px;
+  background: var(--color-surface);
+  box-shadow: 0 2px 4px rgb(23 43 58 / 3%);
+}
+.panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 22px;
+  border-bottom: 1px solid var(--color-border);
+}
+.panel-heading h2 {
+  margin: 0;
+  color: var(--color-primary);
+  font-size: calc(14px * var(--font-scale));
+  font-weight: 750;
+}
+.panel-heading p {
+  margin-top: 6px;
+  color: var(--color-text-muted);
+  font-size: calc(11px * var(--font-scale));
+}
+.text-button {
+  flex-shrink: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-primary);
+  font-size: calc(11px * var(--font-scale));
+  font-weight: 650;
+}
+.text-button:hover {
+  color: var(--color-success);
+}
+.activity-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 19px 22px;
+  border-bottom: 1px solid var(--color-border);
+}
+.activity-row:last-child {
+  border-bottom: 0;
+}
+.activity-indicator {
+  display: grid;
+  place-items: center;
+  width: 33px;
+  height: 33px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--color-background);
+  color: var(--color-primary);
+  font-size: calc(14px * var(--font-scale));
+}
+.activity-details {
+  flex: 1;
+  min-width: 0;
+}
+.activity-details strong {
+  display: block;
+  overflow: hidden;
+  color: var(--color-text);
+  font-size: calc(11px * var(--font-scale));
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.activity-details > span {
+  display: block;
+  overflow: hidden;
+  margin-top: 6px;
+  color: var(--color-text-muted);
+  font-size: calc(10px * var(--font-scale));
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.activity-meta {
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+  gap: 7px;
+}
+.activity-meta time {
+  color: var(--color-text-muted);
+  font-size: calc(9px * var(--font-scale));
+  white-space: nowrap;
+}
+.status {
+  padding: 5px 7px;
+  border-radius: 5px;
+  font-size: calc(9px * var(--font-scale));
+  font-weight: 650;
+  white-space: nowrap;
+}
+.status-1 {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+.status-2 {
+  background: #E7EDF1;
+  color: var(--color-primary);
+}
+.status-3 {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+.attention-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+.attention-symbol {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  font-size: calc(15px * var(--font-scale));
+  font-weight: 750;
+}
+.attention-symbol.red {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+.attention-symbol.orange {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+.attention-item > div {
+  flex: 1;
+  min-width: 0;
+}
+.attention-item strong {
+  display: block;
+  color: var(--color-text);
+  font-size: calc(10px * var(--font-scale));
+}
+.attention-item p {
+  margin-top: 5px;
+  color: var(--color-text-muted);
+  font-size: calc(10px * var(--font-scale));
+}
+.attention-count {
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  border-radius: 7px;
+  background: var(--color-background);
+  color: var(--color-primary);
+  font-size: calc(11px * var(--font-scale));
+  font-weight: 700;
+}
+.attention-note {
+  padding: 16px 20px;
+  color: var(--color-text-muted);
+  font-size: calc(10px * var(--font-scale));
+  line-height: 1.6;
+}
+@media (min-width: 1600px) {
+  .metric-card {
+    padding: 25px;
+  }
+}
+@media (max-width: 1150px) {
+  .metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 700px) {
+  .metrics-grid {
+    gap: 10px;
+  }
+  .metric-card {
+    padding: 14px;
+  }
+  .metric-label {
+    font-size: calc(10px * var(--font-scale));
+  }
+  .metric-icon {
+    width: 28px;
+    height: 28px;
+  }
+  .metric-value {
+    margin-top: 15px;
+    font-size: calc(26px * var(--font-scale));
+  }
+  .metric-caption {
+    line-height: 1.5;
+  }
+  .panel-heading {
+    padding: 17px 14px;
+  }
+  .activity-row {
+    gap: 8px;
+    padding: 16px 12px;
+  }
+  .activity-details strong {
+    font-size: calc(10px * var(--font-scale));
+  }
+  .activity-meta time {
+    font-size: calc(8px * var(--font-scale));
+  }
+  .status {
+    font-size: calc(8px * var(--font-scale));
+  }
+}
+@media (max-width: 390px) {
+  .activity-indicator {
+    display: none;
+  }
+  .activity-meta time {
+    display: none;
+  }
+}

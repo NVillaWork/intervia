@@ -3,7 +3,9 @@ import { listClients } from './api/clients.js'
 import ClientsPage from './components/ClientsPage.jsx'
 import { listPlants } from './api/plants.js'
 import PlantsPage from './components/PlantsPage.jsx'
-import './App.css'
+import './styles/App.css'
+import './styles/Dashboard.css'
+import './styles/Records.css'
 
 const navigation = [
   { id: 'dashboard', label: 'Dashboard', icon: '▦' },
@@ -126,24 +128,6 @@ function App() {
                   : `Gestisci e consulta ${activeItem.label.toLowerCase()}.`}
               </p>
             </div>
-
-            {activePage !== 'clienti' && activePage !== 'impianti' && (
-              <button
-                className="primary-button"
-                onClick={() => {
-                  const nextPage =
-                    activePage === 'impianti'
-                      ? 'un impianto'
-                      : 'un intervento'
-
-                  window.alert(
-                    `La funzione per aggiungere ${nextPage} verrà implementata in seguito.`,
-                  )
-                }}
-              >
-                <span>+</span> Nuovo elemento
-              </button>
-            )}
           </section>
 
           {activePage === 'dashboard' ? (

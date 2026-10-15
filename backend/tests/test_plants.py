@@ -1,3 +1,4 @@
+import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
@@ -59,6 +60,16 @@ class PlantApiTests(unittest.TestCase):
             create_plant(self.make_plant(client_id=999))
 
         self.assertEqual(raised.exception.status_code, 404)
+        self.assertEqual(list_plants(), [])
+
+    def test_update_requires_existing_client(self) -> None:
+        plant = create_plant(self.make_plant())
+
+        with self.assertRaises(HTTPException) as raised:
+            update_plant(plant.id, self.make_plant(client_id=999))
+
+        self.assertEqual(raised.exception.status_code, 404)
+        self.assertEqual(list_plants()[0].client_id, self.client.id)
 
     def test_client_cannot_be_deleted_while_it_has_plants(self) -> None:
         plant = create_plant(self.make_plant())
@@ -100,6 +111,61 @@ class PlantApiTests(unittest.TestCase):
 
         self.assertEqual(second.id, 2)
         self.assertEqual(second.code, "IMP-000002")
+
+    def test_plant_changes_persist_after_database_reinitialization(self) -> None:
+        plant = create_plant(self.make_plant())
+        update_plant(
+            plant.id,
+            self.make_plant(
+                name="Climatizzazione aggiornata",
+                location="Via Nuova 5, Milano",
+            ),
+        )
+
+        database.initialize_database()
+
+        with database.get_connection() as connection:
+            persisted = connection.execute(
+                "SELECT name, location, code, client_id FROM plants WHERE id = ?",
+                (plant.id,),
+            ).fetchone()
+
+        self.assertEqual(persisted["name"], "Climatizzazione aggiornata")
+        self.assertEqual(persisted["location"], "Via Nuova 5, Milano")
+        self.assertEqual(persisted["code"], plant.code)
+        self.assertEqual(persisted["client_id"], self.client.id)
+
+    def test_deleting_plant_leaves_no_row_or_orphaned_relationship(self) -> None:
+        plant = create_plant(self.make_plant())
+
+        response = delete_plant(plant.id)
+
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(list_plants(), [])
+        with database.get_connection() as connection:
+            self.assertIsNone(
+                connection.execute(
+                    "SELECT 1 FROM plants WHERE id = ?",
+                    (plant.id,),
+                ).fetchone()
+            )
+            self.assertEqual(
+                connection.execute("PRAGMA foreign_key_check").fetchall(),
+                [],
+            )
+
+    def test_database_rejects_plant_without_valid_client_even_if_bypassing_api(self) -> None:
+        with self.assertRaises(sqlite3.IntegrityError) as raised:
+            with database.get_connection() as connection:
+                connection.execute(
+                    """
+                    INSERT INTO plants (code, client_id, name)
+                    VALUES (?, ?, ?)
+                    """,
+                    ("IMP-999999", 999, "Impianto orfano"),
+                )
+
+        self.assertIn("FOREIGN KEY constraint failed", str(raised.exception))
 
 
 if __name__ == "__main__":
