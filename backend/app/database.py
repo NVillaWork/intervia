@@ -103,6 +103,47 @@ def initialize_database() -> None:
         connection.execute(
             "CREATE INDEX IF NOT EXISTS idx_plants_client_id ON plants(client_id)"
         )
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS interventions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                plant_id INTEGER NOT NULL,
+                title TEXT NOT NULL,
+                notes TEXT,
+                due_date TEXT NOT NULL,
+                recurrence TEXT NOT NULL DEFAULT 'once'
+                    CHECK (recurrence IN (
+                        'once', 'monthly', 'quarterly', 'semiannual',
+                        'annual', 'custom_days'
+                    )),
+                recurrence_days INTEGER,
+                recurrence_anchor_date TEXT,
+                recurrence_step INTEGER NOT NULL DEFAULT 0
+                    CHECK (recurrence_step >= 0),
+                completed_at TEXT,
+                created_at TEXT NOT NULL DEFAULT (
+                    strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+                ),
+                updated_at TEXT NOT NULL DEFAULT (
+                    strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+                ),
+                CHECK (
+                    (recurrence = 'custom_days' AND recurrence_days > 0)
+                    OR (recurrence != 'custom_days' AND recurrence_days IS NULL)
+                ),
+                FOREIGN KEY (plant_id) REFERENCES plants(id) ON DELETE RESTRICT
+            )
+            """
+        )
+        connection.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_interventions_due_date
+            ON interventions(completed_at, due_date)
+            """
+        )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_interventions_plant_id ON interventions(plant_id)"
+        )
 
         address_rows = connection.execute(
             "SELECT id, address FROM clients WHERE address IS NOT NULL"

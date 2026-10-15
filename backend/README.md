@@ -31,7 +31,21 @@ The plant API is available at `/api/plants` with the same `GET`, `POST`,
 `PUT /api/plants/{id}`, and `DELETE /api/plants/{id}` operations. Each plant
 has an automatically assigned ID and unique code (`IMP-000001`, etc.), a
 required name, a required client association, and an optional installation
-location. A client cannot be deleted while it still has plants.
+location. A client cannot be deleted while it still has plants, and a plant
+cannot be deleted while it has interventions.
+
+The intervention API is available at `/api/interventions`:
+
+- `GET /api/interventions` lists due, overdue, and completed interventions.
+- `POST /api/interventions` creates an intervention for an existing plant.
+- `PUT /api/interventions/{id}` updates an intervention that is not completed.
+- `POST /api/interventions/{id}/complete` marks an intervention complete.
+- `DELETE /api/interventions/{id}` deletes an intervention.
+
+An intervention can be one-time or recur monthly, quarterly, semiannually,
+annually, or every a custom number of days. Completing a recurring intervention
+creates its next occurrence on the original schedule; missed intervals are
+skipped so the new due date is in the future. Due dates use `YYYY-MM-DD`.
 
 Each client has an automatically assigned ID, company name, Italian VAT
 number, email, phone, and address. The company name, address, and VAT number
@@ -64,3 +78,14 @@ exist), run from this directory:
 ```bash
 python seed_plants.py
 ```
+
+To add ten repeatable sample interventions (matching sample plants must
+exist), run from this directory:
+
+```bash
+python seed_interventions.py
+```
+
+The sample interventions include one-time repairs, recurring maintenance,
+custom day intervals, due-today and overdue work, upcoming deadlines, and
+completed records. Existing matching sample interventions are skipped.

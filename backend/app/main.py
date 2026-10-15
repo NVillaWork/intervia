@@ -14,6 +14,7 @@ from pydantic import (
 
 from app.address import normalize_address
 from app.database import get_connection, initialize_database
+from app.interventions import router as interventions_router
 from app.validators import validate_phone_number
 
 
@@ -28,6 +29,7 @@ app = FastAPI(
     description="API per la gestione operativa di Intervia.",
     lifespan=lifespan,
 )
+app.include_router(interventions_router)
 
 
 class ClientInput(BaseModel):
@@ -324,12 +326,18 @@ def update_plant(plant_id: int, plant: PlantInput) -> PlantResponse:
 
 @app.delete("/api/plants/{plant_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_plant(plant_id: int) -> Response:
-    with get_connection() as connection:
-        cursor = connection.execute(
-            "DELETE FROM plants WHERE id = ?",
-            (plant_id,),
-        )
-        if cursor.rowcount == 0:
-            raise HTTPException(status_code=404, detail="Impianto non trovato.")
+    try:
+        with get_connection() as connection:
+            cursor = connection.execute(
+                "DELETE FROM plants WHERE id = ?",
+                (plant_id,),
+            )
+            if cursor.rowcount == 0:
+                raise HTTPException(status_code=404, detail="Impianto non trovato.")
+    except sqlite3.IntegrityError as error:
+        raise HTTPException(
+            status_code=409,
+            detail="Impossibile eliminare l’impianto perché è collegato ad altri dati.",
+        ) from error
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)

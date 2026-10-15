@@ -1,0 +1,200 @@
+.intervention-filters {
+  display: flex;
+  gap: 8px;
+  padding: 14px 22px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.intervention-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0 11px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: calc(12px * var(--font-scale));
+}
+
+.intervention-filter.active {
+  border-color: var(--color-border);
+  background: var(--color-background);
+  color: var(--color-primary);
+  font-weight: 650;
+}
+
+.intervention-filter span {
+  color: var(--color-text-muted);
+  font-size: 0.9em;
+}
+
+.intervention-clear-plant {
+  padding: 0;
+  margin-top: 7px;
+  border: 0;
+  background: transparent;
+  color: var(--color-primary);
+  cursor: pointer;
+  font-size: calc(10px * var(--font-scale));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.intervention-clear-plant:hover {
+  color: var(--color-success);
+}
+
+.intervention-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(150px, 0.6fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.intervention-row:last-child {
+  border-bottom: 0;
+}
+
+.intervention-summary {
+  min-width: 0;
+}
+
+.intervention-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 7px;
+  margin-bottom: 7px;
+  border-radius: 5px;
+  background: #E7EDF1;
+  color: var(--color-primary);
+  font-size: calc(10px * var(--font-scale));
+  font-weight: 650;
+}
+
+.intervention-status .status-symbol {
+  width: 13px;
+  height: 13px;
+  flex-basis: 13px;
+}
+
+.intervention-status.overdue {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  font-weight: 650;
+}
+
+.intervention-status.pending {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.intervention-status.completed {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.intervention-summary h3 {
+  overflow-wrap: anywhere;
+  margin: 0;
+  color: var(--color-primary);
+  font-size: calc(14px * var(--font-scale));
+}
+
+.intervention-summary p,
+.intervention-schedule span {
+  display: block;
+  margin: 5px 0 0;
+  color: var(--color-text-muted);
+  font-size: calc(11px * var(--font-scale));
+  line-height: 1.5;
+}
+
+.intervention-schedule strong {
+  color: var(--color-text);
+  font-size: calc(12px * var(--font-scale));
+}
+
+.intervention-schedule span {
+  margin-top: 4px;
+}
+
+.intervention-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.intervention-actions .primary-button,
+.intervention-actions .secondary-button,
+.intervention-actions .danger-button {
+  min-height: 36px;
+  padding-right: 10px;
+  padding-left: 10px;
+}
+
+.intervention-notes {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: calc(12px * var(--font-scale));
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.intervention-form textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 9px 11px;
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  outline: none;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: calc(12px * var(--font-scale));
+  font-weight: 400;
+  resize: vertical;
+}
+
+.intervention-form textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgb(23 43 58 / 9%);
+}
+
+@media (max-width: 900px) {
+  .intervention-row {
+    grid-template-columns: minmax(0, 1fr) minmax(145px, 0.45fr);
+  }
+
+  .intervention-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 700px) {
+  .intervention-filters {
+    flex-wrap: wrap;
+    padding: 12px 14px;
+  }
+
+  .intervention-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .intervention-actions {
+    grid-column: auto;
+  }
+
+  .intervention-notes {
+    grid-column: auto;
+  }
+}

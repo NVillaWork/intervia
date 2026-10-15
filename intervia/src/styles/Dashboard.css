@@ -12,6 +12,27 @@
   background: var(--color-surface);
   box-shadow: 0 2px 4px rgb(23 43 58 / 3%);
 }
+.metric-card-button {
+  width: 100%;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.metric-card-button:hover {
+  border-color: var(--color-accent);
+  box-shadow: 0 3px 10px rgb(23 43 58 / 10%);
+}
+.metric-card-button:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+}
+.metric-card-button-red:hover {
+  border-color: var(--color-danger);
+}
+.metric-card-button-red:focus-visible {
+  outline-color: var(--color-danger);
+}
 .metric-top {
   display: flex;
   align-items: center;
@@ -44,8 +65,8 @@
   color: var(--color-success);
 }
 .metric-icon.red {
-  background: var(--color-warning-bg);
-  color: var(--color-warning);
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
 }
 .metric-value {
   display: block;
@@ -124,6 +145,10 @@
   color: var(--color-primary);
   font-size: calc(14px * var(--font-scale));
 }
+.activity-indicator.overdue {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
 .activity-details {
   flex: 1;
   min-width: 0;
@@ -158,6 +183,9 @@
   white-space: nowrap;
 }
 .status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   padding: 5px 7px;
   border-radius: 5px;
   font-size: calc(9px * var(--font-scale));
@@ -173,8 +201,8 @@
   color: var(--color-primary);
 }
 .status-3 {
-  background: var(--color-warning-bg);
-  color: var(--color-warning);
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
 }
 .attention-item {
   display: flex;
@@ -182,6 +210,23 @@
   gap: 11px;
   padding: 18px 20px;
   border-bottom: 1px solid var(--color-border);
+}
+.attention-item-button {
+  width: 100%;
+  border-top: 0;
+  border-right: 0;
+  border-left: 0;
+  background: var(--color-surface);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+.attention-item-button:hover {
+  background: var(--color-background);
+}
+.attention-item-button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
 }
 .attention-symbol {
   display: grid;
@@ -231,6 +276,13 @@
   color: var(--color-text-muted);
   font-size: calc(10px * var(--font-scale));
   line-height: 1.6;
+}
+.dashboard-empty {
+  padding: 22px;
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: calc(12px * var(--font-scale));
+  text-align: center;
 }
 @media (min-width: 1600px) {
   .metric-card {

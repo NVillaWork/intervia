@@ -35,5 +35,14 @@ clienti. Nome azienda, partita IVA italiana e indirizzo sono obbligatori; serve
 almeno uno tra email e telefono. La partita IVA deve avere 11 cifre, checksum
 valido ed essere univoca.
 
-Il conteggio dei clienti attivi nella dashboard legge i dati dal database.
-Impianti, interventi e le altre metriche sono ancora dimostrativi.
+La sezione **Impianti** gestisce gli impianti associati ai clienti. La sezione
+**Interventi** consente di pianificare attività per un impianto, indicare una
+scadenza e scegliere se l’attività è singola o ricorrente: mensile,
+trimestrale, semestrale, annuale o ogni N giorni. Segnando un intervento
+ricorrente come completato, l’app crea la prossima scadenza mantenendo la
+cadenza originaria. Se la scadenza successiva è già passata, gli intervalli
+trascorsi vengono saltati.
+
+La dashboard mostra interventi da svolgere, scaduti e le prossime scadenze
+leggendo i dati dal database locale. I promemoria sono visualizzati nell’app;
+non sono ancora previsti invii di email o notifiche esterne.

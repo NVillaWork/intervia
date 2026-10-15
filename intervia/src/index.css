@@ -5,6 +5,10 @@
   --color-primary: #172B3A;
   --color-primary-hover: #243F52;
   --color-accent: #71D6B3;
+  --color-danger: #c7433a;
+  --color-danger-bg: #FBF2F1;
+  --color-success: #246B52;
+  --color-success-bg: #EAF7F2;
 
   --color-text: #172B3A;
   --color-text-muted: #64748B;
@@ -33,6 +37,20 @@ textarea {
 
 button {
   cursor: pointer;
+}
+
+.status-symbol {
+  display: inline-grid;
+  place-items: center;
+  width: 13px;
+  height: 13px;
+  flex: 0 0 13px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
 }
 
 a {

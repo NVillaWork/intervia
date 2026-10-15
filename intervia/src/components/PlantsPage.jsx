@@ -16,7 +16,7 @@ function sortPlants(plants) {
   )
 }
 
-function PlantsPage() {
+function PlantsPage({ onViewInterventions }) {
   const [plants, setPlants] = useState([])
   const [clients, setClients] = useState([])
   const [isLoading, setIsLoading] = useState(true)
@@ -309,7 +309,17 @@ function PlantsPage() {
                   <dd>{plant.location || 'Non specificato'}</dd>
                 </div>
               </dl>
-              <div className="client-actions">
+              <div className="client-actions plant-actions">
+                <button
+                  className="secondary-button"
+                  disabled={
+                    isFormOpen || isSaving || deletingPlantId !== null
+                  }
+                  onClick={() => onViewInterventions(plant)}
+                  type="button"
+                >
+                  Interventi
+                </button>
                 <button
                   className="secondary-button"
                   disabled={

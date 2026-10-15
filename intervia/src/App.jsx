@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { listClients } from './api/clients.js'
+import { listInterventions } from './api/interventions.js'
 import ClientsPage from './components/ClientsPage.jsx'
+import InterventionsPage from './components/InterventionsPage.jsx'
 import { listPlants } from './api/plants.js'
 import PlantsPage from './components/PlantsPage.jsx'
 import './styles/App.css'
@@ -14,39 +16,26 @@ const navigation = [
   { id: 'interventi', label: 'Interventi', icon: '☷' },
 ]
 
-const initialActivities = [
-  {
-    id: 1,
-    title: 'Manutenzione completata',
-    customer: 'Alfa S.r.l.',
-    detail: 'Impianto di climatizzazione',
-    date: 'Oggi, 09:42',
-    status: 'Completato',
-  },
-  {
-    id: 2,
-    title: 'Manutenzione programmata',
-    customer: 'Beta S.p.A.',
-    detail: 'Impianto elettrico',
-    date: 'Oggi, 08:15',
-    status: 'Pianificato',
-  },
-  {
-    id: 3,
-    title: 'Controllo periodico',
-    customer: 'Gamma S.r.l.',
-    detail: 'Impianto antincendio',
-    date: 'Ieri, 16:30',
-    status: 'In attesa',
-  },
-]
-
 function App() {
   const [activePage, setActivePage] = useState('dashboard')
+  const [interventionFilter, setInterventionFilter] = useState('open')
+  const [interventionPlant, setInterventionPlant] = useState(null)
 
   const activeItem = navigation.find(
     (item) => item.id === activePage,
   )
+
+  function navigateToInterventions(filter = 'open') {
+    setInterventionFilter(filter)
+    setInterventionPlant(null)
+    setActivePage('interventi')
+  }
+
+  function navigateToPlantInterventions(plant) {
+    setInterventionFilter('all')
+    setInterventionPlant(plant)
+    setActivePage('interventi')
+  }
 
   return (
     <div className="app-layout">
@@ -66,7 +55,15 @@ function App() {
                 className={`nav-item ${
                   activePage === item.id ? 'active' : ''
                 }`}
-                onClick={() => setActivePage(item.id)}
+                aria-label={item.label}
+                aria-current={activePage === item.id ? 'page' : undefined}
+                onClick={() => {
+                  if (item.id === 'interventi') {
+                    navigateToInterventions()
+                  } else {
+                    setActivePage(item.id)
+                  }
+                }}
               >
                 <span className="nav-icon" aria-hidden="true">
                   {item.icon}
@@ -131,11 +128,21 @@ function App() {
           </section>
 
           {activePage === 'dashboard' ? (
-            <Dashboard />
+            <Dashboard
+              onNavigate={navigateToInterventions}
+              onNavigatePage={setActivePage}
+            />
           ) : activePage === 'clienti' ? (
             <ClientsPage />
           ) : activePage === 'impianti' ? (
-            <PlantsPage />
+            <PlantsPage onViewInterventions={navigateToPlantInterventions} />
+          ) : activePage === 'interventi' ? (
+            <InterventionsPage
+              key={`${interventionFilter}-${interventionPlant?.id ?? 'all'}`}
+              initialFilter={interventionFilter}
+              plant={interventionPlant}
+              onClearPlantFilter={() => setInterventionPlant(null)}
+            />
           ) : (
             <section className="placeholder-panel">
               <div className="placeholder-icon">
@@ -157,11 +164,7 @@ function App() {
 
           <footer className="page-footer">
             <span>Intervia · Gestione operativa</span>
-            <span>
-              {activePage === 'clienti' || activePage === 'impianti'
-                ? 'Dati salvati nel database locale'
-                : 'Prototipo iniziale · Dati dimostrativi'}
-            </span>
+            <span>Dati aggiornati dal database locale</span>
           </footer>
         </div>
       </main>
@@ -169,38 +172,86 @@ function App() {
   )
 }
 
-function Dashboard() {
+function Dashboard({ onNavigate, onNavigatePage }) {
   const [clientCount, setClientCount] = useState(null)
   const [clientCountError, setClientCountError] = useState('')
   const [plantCount, setPlantCount] = useState(null)
   const [plantCountError, setPlantCountError] = useState('')
+  const [interventions, setInterventions] = useState([])
+  const [interventionError, setInterventionError] = useState('')
+  const [isLoading, setIsLoading] = useState(true)
+  const [today, setToday] = useState('')
+  const [nextWeek, setNextWeek] = useState('')
 
   useEffect(() => {
     const controller = new AbortController()
 
-    Promise.all([
+    Promise.allSettled([
       listClients({ signal: controller.signal }),
       listPlants({ signal: controller.signal }),
+      listInterventions({ signal: controller.signal }),
     ])
-      .then(([clients, plants]) => {
+      .then(([clientResult, plantResult, interventionResult]) => {
         if (!controller.signal.aborted) {
-          setClientCount(
-            clients.filter((client) => client.status === 'active').length,
-          )
-          setPlantCount(
-            plants.filter((plant) => plant.status === 'active').length,
-          )
+          const currentDate = new Date()
+          currentDate.setHours(0, 0, 0, 0)
+          const weekEnd = new Date(currentDate)
+          weekEnd.setDate(weekEnd.getDate() + 7)
+          const localDateValue = (date) =>
+            `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
+              date.getDate(),
+            ).padStart(2, '0')}`
+          setToday(localDateValue(currentDate))
+          setNextWeek(localDateValue(weekEnd))
+
+          if (clientResult.status === 'fulfilled') {
+            setClientCount(
+              clientResult.value.filter((client) => client.status === 'active')
+                .length,
+            )
+          } else {
+            setClientCountError(clientResult.reason.message)
+          }
+          if (plantResult.status === 'fulfilled') {
+            setPlantCount(
+              plantResult.value.filter((plant) => plant.status === 'active')
+                .length,
+            )
+          } else {
+            setPlantCountError(plantResult.reason.message)
+          }
+          if (interventionResult.status === 'fulfilled') {
+            setInterventions(interventionResult.value)
+          } else {
+            setInterventionError(interventionResult.reason.message)
+          }
         }
       })
       .catch((error) => {
         if (!controller.signal.aborted) {
           setClientCountError(error.message)
           setPlantCountError(error.message)
+          setInterventionError(error.message)
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setIsLoading(false)
         }
       })
 
     return () => controller.abort()
   }, [])
+
+  const openInterventions = interventions.filter(
+    (intervention) => intervention.status !== 'completed',
+  )
+  const overdueCount = interventions.filter(
+    (intervention) => intervention.status === 'overdue',
+  ).length
+  const nextWeekCount = openInterventions.filter((intervention) => {
+    return intervention.due_date >= today && intervention.due_date <= nextWeek
+  }).length
 
   const metrics = [
     {
@@ -214,6 +265,7 @@ function Dashboard() {
             : 'Nel database locale',
       icon: '♙',
       tone: 'blue',
+      onClick: () => onNavigatePage('clienti'),
     },
     {
       label: 'Impianti registrati',
@@ -226,43 +278,67 @@ function Dashboard() {
             : 'Nel database locale',
       icon: '▤',
       tone: 'violet',
+      onClick: () => onNavigatePage('impianti'),
     },
     {
       label: 'Interventi da svolgere',
-      value: '7',
-      change: '3 nei prossimi 7 giorni',
+      value:
+        interventionError || isLoading ? '—' : String(openInterventions.length),
+      change: interventionError
+        ? 'Non disponibile'
+        : isLoading
+          ? 'Caricamento...'
+          : 'In programma o in ritardo',
       icon: '☷',
       tone: 'orange',
+      onClick: () => onNavigate(),
     },
     {
-      label: 'Manutenzioni scadute',
-      value: '3',
-      change: 'Richiedono attenzione',
+      label: 'Interventi scaduti',
+      value: interventionError || isLoading ? '—' : String(overdueCount),
+      change: interventionError
+        ? 'Non disponibile'
+        : isLoading
+          ? 'Caricamento...'
+          : 'Richiedono attenzione',
       icon: '!',
       tone: 'red',
+      onClick: () => onNavigate('overdue'),
     },
   ]
 
   return (
     <>
       <section className="metrics-grid">
-        {metrics.map((metric) => (
-          <article className="metric-card" key={metric.label}>
-            <div className="metric-top">
-              <span className="metric-label">{metric.label}</span>
-              <span className={`metric-icon ${metric.tone}`}>
-                {metric.icon}
-              </span>
-            </div>
-            <strong className="metric-value">{metric.value}</strong>
-            <span className="metric-caption">{metric.change}</span>
-          </article>
-        ))}
+        {metrics.map((metric) => {
+          const Card = metric.onClick ? 'button' : 'article'
+          return (
+            <Card
+              className={
+                metric.onClick
+                  ? `metric-card metric-card-button metric-card-button-${metric.tone}`
+                  : 'metric-card'
+              }
+              key={metric.label}
+              onClick={metric.onClick}
+              type={metric.onClick ? 'button' : undefined}
+            >
+              <div className="metric-top">
+                <span className="metric-label">{metric.label}</span>
+                <span className={`metric-icon ${metric.tone}`}>
+                  {metric.icon}
+                </span>
+              </div>
+              <strong className="metric-value">{metric.value}</strong>
+              <span className="metric-caption">{metric.change}</span>
+            </Card>
+          )
+        })}
       </section>
 
-      {(clientCountError || plantCountError) && (
+      {(clientCountError || plantCountError || interventionError) && (
         <p className="client-message error dashboard-message" role="alert">
-          {clientCountError || plantCountError}
+          {clientCountError || plantCountError || interventionError}
         </p>
       )}
 
@@ -270,40 +346,62 @@ function Dashboard() {
         <article className="panel activity-panel">
           <div className="panel-heading">
             <div>
-              <h2>Attività recenti</h2>
-              <p>Ultimi aggiornamenti registrati</p>
+              <h2>Prossimi interventi</h2>
+              <p>Scadenze da tenere sotto controllo</p>
             </div>
-            <button className="text-button">Visualizza tutte →</button>
+            <button
+              className="text-button"
+              onClick={() => onNavigate()}
+              type="button"
+            >
+              Gestisci interventi →
+            </button>
           </div>
 
           <div className="activity-list">
-            {initialActivities.map((activity) => (
-              <div className="activity-row" key={activity.id}>
-                <div className="activity-indicator">
-                  {activity.id === 1
-                    ? '✓'
-                    : activity.id === 2
-                      ? '◷'
-                      : '!'}
+            {openInterventions.slice(0, 3).map((intervention) => (
+              <div className="activity-row" key={intervention.id}>
+                <div
+                  className={`activity-indicator ${
+                    intervention.status === 'overdue' ? 'overdue' : ''
+                  }`}
+                >
+                  {intervention.status === 'overdue' ? '!' : '◷'}
                 </div>
 
                 <div className="activity-details">
-                  <strong>{activity.title}</strong>
+                  <strong>{intervention.title}</strong>
                   <span>
-                    {activity.customer} · {activity.detail}
+                    {intervention.plant_code} · {intervention.plant_name} ·{' '}
+                    {intervention.client_name}
                   </span>
                 </div>
 
                 <div className="activity-meta">
                   <span
-                    className={`status status-${activity.id}`}
+                    className={`status ${
+                      intervention.status === 'overdue' ? 'status-3' : 'status-1'
+                    }`}
                   >
-                    {activity.status}
+                    {intervention.status === 'overdue' ? 'Scaduto' : 'Attivo'}
+                    <span aria-hidden="true" className="status-symbol">
+                      {intervention.status === 'overdue' ? 'X' : '✓'}
+                    </span>
                   </span>
-                  <time>{activity.date}</time>
+                  <time>
+                    {new Date(
+                      `${intervention.due_date}T00:00:00`,
+                    ).toLocaleDateString('it-IT')}
+                  </time>
                 </div>
               </div>
             ))}
+            {!isLoading && openInterventions.length === 0 && (
+              <p className="dashboard-empty">Nessun intervento da svolgere.</p>
+            )}
+            {isLoading && (
+              <p className="dashboard-empty">Caricamento interventi...</p>
+            )}
           </div>
         </article>
 
@@ -315,27 +413,35 @@ function Dashboard() {
             </div>
           </div>
 
-          <div className="attention-item">
+          <button
+            aria-label="Apri gli interventi scaduti"
+            className="attention-item attention-item-button"
+            onClick={() => onNavigate('overdue')}
+            type="button"
+          >
             <span className="attention-symbol red">!</span>
             <div>
-              <strong>Manutenzioni scadute</strong>
-              <p>3 impianti da verificare</p>
+              <strong>Interventi scaduti</strong>
+              <p>Da pianificare o completare</p>
             </div>
-            <span className="attention-count">3</span>
-          </div>
+            <span className="attention-count">
+              {isLoading || interventionError ? '—' : overdueCount}
+            </span>
+          </button>
 
           <div className="attention-item">
             <span className="attention-symbol orange">◷</span>
             <div>
-              <strong>Interventi imminenti</strong>
-              <p>Nei prossimi 7 giorni</p>
+              <strong>Entro i prossimi 7 giorni</strong>
+              <p>In scadenza</p>
             </div>
-            <span className="attention-count">7</span>
+            <span className="attention-count">
+              {isLoading || interventionError ? '—' : nextWeekCount}
+            </span>
           </div>
 
           <div className="attention-note">
-            Il conteggio clienti è aggiornato dal database locale; gli altri
-            dati sono dimostrativi.
+            Clienti, impianti e scadenze sono aggiornati dal database locale.
           </div>
         </article>
       </section>
