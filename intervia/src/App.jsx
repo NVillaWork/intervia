@@ -1,4 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { listClients } from './api/clients.js'
+import ClientsPage from './components/ClientsPage.jsx'
 import './App.css'
 
 const navigation = [
@@ -123,27 +125,29 @@ function App() {
               </p>
             </div>
 
-            <button
-              className="primary-button"
-              onClick={() => {
-                const nextPage =
-                  activePage === 'clienti'
-                    ? 'un cliente'
-                    : activePage === 'impianti'
+            {activePage !== 'clienti' && (
+              <button
+                className="primary-button"
+                onClick={() => {
+                  const nextPage =
+                    activePage === 'impianti'
                       ? 'un impianto'
                       : 'un intervento'
 
-                window.alert(
-                  `La funzione per aggiungere ${nextPage} verrà implementata in seguito.`,
-                )
-              }}
-            >
-              <span>+</span> Nuovo elemento
-            </button>
+                  window.alert(
+                    `La funzione per aggiungere ${nextPage} verrà implementata in seguito.`,
+                  )
+                }}
+              >
+                <span>+</span> Nuovo elemento
+              </button>
+            )}
           </section>
 
           {activePage === 'dashboard' ? (
             <Dashboard />
+          ) : activePage === 'clienti' ? (
+            <ClientsPage />
           ) : (
             <section className="placeholder-panel">
               <div className="placeholder-icon">
@@ -165,7 +169,11 @@ function App() {
 
           <footer className="page-footer">
             <span>Intervia · Gestione operativa</span>
-            <span>Prototipo iniziale · Dati dimostrativi</span>
+            <span>
+              {activePage === 'clienti'
+                ? 'Clienti salvati nel database locale'
+                : 'Prototipo iniziale · Dati dimostrativi'}
+            </span>
           </footer>
         </div>
       </main>
@@ -174,18 +182,46 @@ function App() {
 }
 
 function Dashboard() {
+  const [clientCount, setClientCount] = useState(null)
+  const [clientCountError, setClientCountError] = useState('')
+
+  useEffect(() => {
+    const controller = new AbortController()
+
+    listClients({ signal: controller.signal })
+      .then((clients) => {
+        if (!controller.signal.aborted) {
+          setClientCount(
+            clients.filter((client) => client.status === 'active').length,
+          )
+        }
+      })
+      .catch((error) => {
+        if (!controller.signal.aborted) {
+          setClientCountError(error.message)
+        }
+      })
+
+    return () => controller.abort()
+  }, [])
+
   const metrics = [
     {
       label: 'Clienti attivi',
-      value: '24',
-      change: '+3 questo mese',
+      value: clientCount === null ? '—' : String(clientCount),
+      change:
+        clientCountError
+          ? 'Non disponibile'
+          : clientCount === null
+            ? 'Caricamento...'
+            : 'Nel database locale',
       icon: '♙',
       tone: 'blue',
     },
     {
       label: 'Impianti registrati',
       value: '68',
-      change: 'In 24 clienti',
+      change: 'Dati dimostrativi',
       icon: '▤',
       tone: 'violet',
     },
@@ -221,6 +257,12 @@ function Dashboard() {
           </article>
         ))}
       </section>
+
+      {clientCountError && (
+        <p className="client-message error dashboard-message" role="alert">
+          {clientCountError}
+        </p>
+      )}
 
       <section className="content-grid">
         <article className="panel activity-panel">
@@ -290,7 +332,8 @@ function Dashboard() {
           </div>
 
           <div className="attention-note">
-            I dati sono dimostrativi e non provengono da un database.
+            Il conteggio clienti è aggiornato dal database locale; gli altri
+            dati sono dimostrativi.
           </div>
         </article>
       </section>

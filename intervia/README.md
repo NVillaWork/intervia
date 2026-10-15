@@ -1,16 +1,39 @@
-# React + Vite
+# Intervia
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Applicazione gestionale per piccole aziende di manutenzione. Il frontend usa
+React e Vite; il backend usa FastAPI e SQLite.
 
-Currently, two official plugins are available:
+## Avvio in locale
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Avvia il backend dal repository:
 
-## React Compiler
+```bash
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+In un secondo terminale, dalla cartella del repository:
 
-## Expanding the Oxlint configuration
+```bash
+npm --prefix intervia run dev
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+Vite inoltra le richieste `/api` a FastAPI. L'API e la documentazione interattiva
+sono disponibili rispettivamente su <http://127.0.0.1:8000> e
+<http://127.0.0.1:8000/docs>.
+
+## Dati
+
+SQLite crea `backend/data/intervia.db` all'avvio del backend. Il database è
+locale e non viene incluso in Git.
+
+La sezione **Clienti** consente di elencare, creare, modificare ed eliminare
+clienti. Nome azienda, partita IVA italiana e indirizzo sono obbligatori; serve
+almeno uno tra email e telefono. La partita IVA deve avere 11 cifre, checksum
+valido ed essere univoca.
+
+Il conteggio dei clienti attivi nella dashboard legge i dati dal database.
+Impianti, interventi e le altre metriche sono ancora dimostrativi.
