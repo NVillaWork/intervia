@@ -80,6 +80,30 @@ def initialize_database() -> None:
             """
         )
 
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS plants (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                code TEXT NOT NULL UNIQUE,
+                client_id INTEGER NOT NULL,
+                name TEXT NOT NULL,
+                location TEXT,
+                status TEXT NOT NULL DEFAULT 'active'
+                    CHECK (status IN ('active', 'inactive')),
+                created_at TEXT NOT NULL DEFAULT (
+                    strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+                ),
+                updated_at TEXT NOT NULL DEFAULT (
+                    strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+                ),
+                FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE RESTRICT
+            )
+            """
+        )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_plants_client_id ON plants(client_id)"
+        )
+
         address_rows = connection.execute(
             "SELECT id, address FROM clients WHERE address IS NOT NULL"
         ).fetchall()

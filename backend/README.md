@@ -27,6 +27,12 @@ starts. The client API is available at `/api/clients`:
 - `PUT /api/clients/{id}` updates a client.
 - `DELETE /api/clients/{id}` deletes a client.
 
+The plant API is available at `/api/plants` with the same `GET`, `POST`,
+`PUT /api/plants/{id}`, and `DELETE /api/plants/{id}` operations. Each plant
+has an automatically assigned ID and unique code (`IMP-000001`, etc.), a
+required name, a required client association, and an optional installation
+location. A client cannot be deleted while it still has plants.
+
 Each client has an automatically assigned ID, company name, Italian VAT
 number, email, phone, and address. The company name, address, and VAT number
 are required. The VAT number must contain 11 digits and pass its checksum; at
@@ -51,3 +57,10 @@ python seed_clients.py
 
 Sample records use the reserved `.example` email domain and are inserted only
 when their generated VAT number is not already present.
+
+To add the 13 repeatable sample plants (the 13 matching sample clients must
+exist), run from this directory:
+
+```bash
+python seed_plants.py
+```

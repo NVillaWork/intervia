@@ -88,8 +88,49 @@ class ClientResponse(BaseModel):
     updated_at: str | None
 
 
+class PlantInput(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    name: str = Field(min_length=1, max_length=200)
+    client_id: int = Field(gt=0)
+    location: str | None = Field(default=None, max_length=300)
+
+    @field_validator("location", mode="before")
+    @classmethod
+    def normalize_plant_location(cls, value: object) -> object:
+        if isinstance(value, str):
+            normalized = normalize_address(value)
+            return normalized or None
+        return value
+
+
+class PlantResponse(BaseModel):
+    id: int
+    code: str
+    client_id: int
+    client_name: str
+    name: str
+    location: str | None
+    status: str
+    created_at: str
+    updated_at: str
+
+
 def client_from_row(row: sqlite3.Row) -> dict[str, object]:
     return dict(row)
+
+
+def plant_from_row(row: sqlite3.Row) -> dict[str, object]:
+    return dict(row)
+
+
+def ensure_client_exists(connection: sqlite3.Connection, client_id: int) -> None:
+    client = connection.execute(
+        "SELECT 1 FROM clients WHERE id = ?",
+        (client_id,),
+    ).fetchone()
+    if client is None:
+        raise HTTPException(status_code=404, detail="Cliente associato non trovato.")
 
 
 def raise_for_duplicate_vat(error: sqlite3.IntegrityError) -> None:
@@ -193,5 +234,102 @@ def delete_client(client_id: int) -> Response:
             status_code=409,
             detail="Impossibile eliminare il cliente perché è collegato ad altri dati.",
         ) from error
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@app.get("/api/plants", response_model=list[PlantResponse])
+def list_plants() -> list[PlantResponse]:
+    with get_connection() as connection:
+        plants = connection.execute(
+            """
+            SELECT plants.*, clients.name AS client_name
+            FROM plants
+            JOIN clients ON clients.id = plants.client_id
+            ORDER BY plants.name COLLATE NOCASE, plants.id
+            """
+        ).fetchall()
+
+    return [PlantResponse.model_validate(plant_from_row(plant)) for plant in plants]
+
+
+@app.post(
+    "/api/plants",
+    response_model=PlantResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_plant(plant: PlantInput) -> PlantResponse:
+    values = plant.model_dump()
+
+    with get_connection() as connection:
+        ensure_client_exists(connection, plant.client_id)
+        cursor = connection.execute(
+            """
+            INSERT INTO plants (code, client_id, name, location)
+            VALUES ('', :client_id, :name, :location)
+            """,
+            values,
+        )
+        plant_id = cursor.lastrowid
+        code = f"IMP-{plant_id:06d}"
+        connection.execute(
+            "UPDATE plants SET code = ? WHERE id = ?",
+            (code, plant_id),
+        )
+        created = connection.execute(
+            """
+            SELECT plants.*, clients.name AS client_name
+            FROM plants
+            JOIN clients ON clients.id = plants.client_id
+            WHERE plants.id = ?
+            """,
+            (plant_id,),
+        ).fetchone()
+
+    return PlantResponse.model_validate(plant_from_row(created))
+
+
+@app.put("/api/plants/{plant_id}", response_model=PlantResponse)
+def update_plant(plant_id: int, plant: PlantInput) -> PlantResponse:
+    values = plant.model_dump()
+    values["id"] = plant_id
+
+    with get_connection() as connection:
+        ensure_client_exists(connection, plant.client_id)
+        cursor = connection.execute(
+            """
+            UPDATE plants
+            SET client_id = :client_id,
+                name = :name,
+                location = :location,
+                updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+            WHERE id = :id
+            """,
+            values,
+        )
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Impianto non trovato.")
+        updated = connection.execute(
+            """
+            SELECT plants.*, clients.name AS client_name
+            FROM plants
+            JOIN clients ON clients.id = plants.client_id
+            WHERE plants.id = ?
+            """,
+            (plant_id,),
+        ).fetchone()
+
+    return PlantResponse.model_validate(plant_from_row(updated))
+
+
+@app.delete("/api/plants/{plant_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_plant(plant_id: int) -> Response:
+    with get_connection() as connection:
+        cursor = connection.execute(
+            "DELETE FROM plants WHERE id = ?",
+            (plant_id,),
+        )
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Impianto non trovato.")
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)

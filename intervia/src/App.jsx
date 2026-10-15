@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { listClients } from './api/clients.js'
 import ClientsPage from './components/ClientsPage.jsx'
+import { listPlants } from './api/plants.js'
+import PlantsPage from './components/PlantsPage.jsx'
 import './App.css'
 
 const navigation = [
@@ -125,7 +127,7 @@ function App() {
               </p>
             </div>
 
-            {activePage !== 'clienti' && (
+            {activePage !== 'clienti' && activePage !== 'impianti' && (
               <button
                 className="primary-button"
                 onClick={() => {
@@ -148,6 +150,8 @@ function App() {
             <Dashboard />
           ) : activePage === 'clienti' ? (
             <ClientsPage />
+          ) : activePage === 'impianti' ? (
+            <PlantsPage />
           ) : (
             <section className="placeholder-panel">
               <div className="placeholder-icon">
@@ -170,8 +174,8 @@ function App() {
           <footer className="page-footer">
             <span>Intervia · Gestione operativa</span>
             <span>
-              {activePage === 'clienti'
-                ? 'Clienti salvati nel database locale'
+              {activePage === 'clienti' || activePage === 'impianti'
+                ? 'Dati salvati nel database locale'
                 : 'Prototipo iniziale · Dati dimostrativi'}
             </span>
           </footer>
@@ -184,21 +188,30 @@ function App() {
 function Dashboard() {
   const [clientCount, setClientCount] = useState(null)
   const [clientCountError, setClientCountError] = useState('')
+  const [plantCount, setPlantCount] = useState(null)
+  const [plantCountError, setPlantCountError] = useState('')
 
   useEffect(() => {
     const controller = new AbortController()
 
-    listClients({ signal: controller.signal })
-      .then((clients) => {
+    Promise.all([
+      listClients({ signal: controller.signal }),
+      listPlants({ signal: controller.signal }),
+    ])
+      .then(([clients, plants]) => {
         if (!controller.signal.aborted) {
           setClientCount(
             clients.filter((client) => client.status === 'active').length,
+          )
+          setPlantCount(
+            plants.filter((plant) => plant.status === 'active').length,
           )
         }
       })
       .catch((error) => {
         if (!controller.signal.aborted) {
           setClientCountError(error.message)
+          setPlantCountError(error.message)
         }
       })
 
@@ -220,8 +233,13 @@ function Dashboard() {
     },
     {
       label: 'Impianti registrati',
-      value: '68',
-      change: 'Dati dimostrativi',
+      value: plantCount === null ? '—' : String(plantCount),
+      change:
+        plantCountError
+          ? 'Non disponibile'
+          : plantCount === null
+            ? 'Caricamento...'
+            : 'Nel database locale',
       icon: '▤',
       tone: 'violet',
     },
@@ -258,9 +276,9 @@ function Dashboard() {
         ))}
       </section>
 
-      {clientCountError && (
+      {(clientCountError || plantCountError) && (
         <p className="client-message error dashboard-message" role="alert">
-          {clientCountError}
+          {clientCountError || plantCountError}
         </p>
       )}
 
